@@ -1,35 +1,35 @@
+
 public class Vokabel {
-    // Attribute
-    private String originalWort;
-    private String uebersetzung;
-    private int schwierigkeitsGrad; // 1 (leicht) bis 3 (schwer)
-    private boolean istGelernt;
+    private String deutsch;
+    private String fremdsprache;
+    private String sprache;      // "Englisch" oder "Französisch"
+    private String level;        // "Anfänger" oder "Fortgeschritten"
+    private boolean istGelernt;  // Speichert, ob man es schon kann
 
     // Konstruktor
-    public Vokabel(String originalWort, String uebersetzung, int schwierigkeitsGrad, boolean istGelernt) {
-        this.originalWort = originalWort;
-        this.uebersetzung = uebersetzung;
-        this.schwierigkeitsGrad = schwierigkeitsGrad;
+    public Vokabel(String deutsch, String fremdsprache, String sprache, String level, boolean istGelernt) {
+        this.deutsch = deutsch;
+        this.fremdsprache = fremdsprache;
+        this.sprache = sprache;
+        this.level = level;
         this.istGelernt = istGelernt;
     }
 
-    // Methode für die Logik (wird später getestet)
-    public boolean istSchwer() {
-        // Logik: Alles ab Stufe 5 ist "schwer"
-        return this.schwierigkeitsGrad >= 5;
+    // Logik: Prüft Antwort
+    public boolean istLösungRichtig(String eingabeUser) {
+        return this.fremdsprache.equalsIgnoreCase(eingabeUser);
     }
 
-    // Getter (wichtig für die Tabelle später)
-    public String getOriginalWort() { return originalWort; }
-    public String getUebersetzung() { return uebersetzung; }
-    public int getSchwierigkeitsGrad() { return schwierigkeitsGrad; }
-    public boolean isIstGelernt() { return istGelernt; }
+    // Getter & Setter
+    public String getDeutsch() { return deutsch; }
+    public String getFremdsprache() { return fremdsprache; }
+    public String getSprache() { return sprache; }
+    public String getLevel() { return level; }
 
-    // Setter (falls man nachträglich was ändern will)
-    public void setIstGelernt(boolean istGelernt) { this.istGelernt = istGelernt; }
+    public boolean istGelernt() { return istGelernt; }
 
-    @Override
-    public String toString() {
-        return originalWort + " - " + uebersetzung;
+    // NEU: Setter, damit wir den Status ändern können, wenn man richtig antwortet
+    public void setIstGelernt(boolean istGelernt) {
+        this.istGelernt = istGelernt;
     }
 }
