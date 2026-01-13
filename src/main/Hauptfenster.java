@@ -22,51 +22,53 @@ public class Hauptfenster extends JFrame{
     private JTextField txtAntwort;
     private JButton btnPruefen;
 
-    private ArrayList<Vokabel> vokabelListe = new ArrayList<>();
-    private DefaultTableModel tableModel;
 
+    private DefaultTableModel tableModel;
+    private ArrayList<Vokabel> alleVokabeln = new ArrayList<>();
+    private ArrayList<Vokabel> gefilterteListe = new ArrayList<>();
     private Vokabel aktuelleAbfrageVokabel = null;
-    private int aktuelleZeileIndex = -1; // Merkt sich, welche Zeile in der Tabelle markiert ist
 
     public Hauptfenster() {
         setContentPane(mainPanel);
-        setTitle("Lern Fix - Vokabeltrainer");
+        setTitle("Lern Fix 2026 - Vokabeltrainer");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(800, 600); // Etwas breiter für die neue Spalte
+        setSize(900, 650);
         setLocationRelativeTo(null);
-
 
         String[] spalten = {"Deutsch", "Fremdsprache", "Sprache", "Level", "Gelernt?"};
         tableModel = new DefaultTableModel(spalten, 0);
         tblVokabeln.setModel(tableModel);
 
 
-        cmbSprache.addItem("Englisch");
-        cmbSprache.addItem("Französisch");
-        cmbLevel.addItem("Anfänger");
-        cmbLevel.addItem("Fortgeschritten");
-
+        if (cmbSprache.getItemCount() == 0) {
+            cmbSprache.addItem("Englisch");
+            cmbSprache.addItem("Französisch");
+        }
+        if (cmbLevel.getItemCount() == 0) {
+            cmbLevel.addItem("Anfänger");
+            cmbLevel.addItem("Fortgeschritten");
+        }
 
         initObjekte();
+        aktualisiereTabelle();
 
-
+        ActionListener filterListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                aktualisiereTabelle();
+                lblAbfrageWort.setText("Wähle ein neues Wort aus der Liste...");
+                txtAntwort.setText("");
+                txtAntwort.setBackground(Color.WHITE);
+                aktuelleAbfrageVokabel = null;
+            }
+        };
+        cmbSprache.addActionListener(filterListener);
+        cmbLevel.addActionListener(filterListener);
 
         btnSpeichern.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 speichern();
-            }
-        });
-
-
-        tblVokabeln.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (!e.getValueIsAdjusting() && tblVokabeln.getSelectedRow() != -1) {
-
-                    aktuelleZeileIndex = tblVokabeln.getSelectedRow();
-                    startAbfrage(aktuelleZeileIndex);
-                }
             }
         });
 
@@ -77,90 +79,117 @@ public class Hauptfenster extends JFrame{
             }
         });
 
+        tblVokabeln.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (!e.getValueIsAdjusting() && tblVokabeln.getSelectedRow() != -1) {
+                    int viewRow = tblVokabeln.getSelectedRow();
+                    int modelRow = tblVokabeln.convertRowIndexToModel(viewRow);
+                    if (modelRow < gefilterteListe.size()) {
+                        startAbfrage(gefilterteListe.get(modelRow));
+                    }
+                }
+            }
+        });
+
         setVisible(true);
     }
-
-
     public void initObjekte() {
-        // Letzter Wert ist jetzt true/false für "Gelernt"
-        Vokabel v1 = new Vokabel("Hund", "Dog", "Englisch", "Anfänger", true);
-        Vokabel v2 = new Vokabel("Katze", "Chat", "Französisch", "Anfänger", false);
-        Vokabel v3 = new Vokabel("Haus", "House", "Englisch", "Anfänger", false);
+        // Englisch - Anfänger
+        alleVokabeln.add(new Vokabel("Hund", "Dog", "Englisch", "Anfänger", false));
+        alleVokabeln.add(new Vokabel("Bitte", "Please", "Englisch", "Anfänger", false));
+        alleVokabeln.add(new Vokabel("Essen", "Eat", "Englisch", "Anfänger", false));
 
-        objektHinzufuegen(v1);
-        objektHinzufuegen(v2);
-        objektHinzufuegen(v3);
+        // Englisch - Fortgeschritten
+        alleVokabeln.add(new Vokabel("Eichhörnchen", "Squirrel", "Englisch", "Fortgeschritten", false));
+        alleVokabeln.add(new Vokabel("Regenmantel", "Raincoat", "Englisch", "Fortgeschritten", false));
+        alleVokabeln.add(new Vokabel("Wohlhabend", "Wealthy", "Englisch", "Fortgeschritten", false));
+
+        // Französisch - Anfänger
+        alleVokabeln.add(new Vokabel("Katze", "Chat", "Französisch", "Anfänger", false));
+        alleVokabeln.add(new Vokabel("Danke", "Merci", "Französisch", "Anfänger", false));
+        alleVokabeln.add(new Vokabel("Rot", "Rouge", "Französisch", "Anfänger", false));
+
+        // Französisch - Fortgeschritten
+        alleVokabeln.add(new Vokabel("Tasche", "Poche", "Französisch", "Fortgeschritten", false));
+        alleVokabeln.add(new Vokabel("Englisch", "Anglais", "Französisch", "Fortgeschritten", false));
+        alleVokabeln.add(new Vokabel("Schwer", "Lourde", "Französisch", "Fortgeschritten", false));
     }
 
-    private void objektHinzufuegen(Vokabel v) {
-        vokabelListe.add(v);
-        // "Ja" oder "Nein" für die Tabelle statt true/false (sieht schöner aus)
-        String gelerntText = v.istGelernt() ? "Ja" : "Nein";
+    private void aktualisiereTabelle() {
+        tableModel.setRowCount(0);
+        gefilterteListe.clear();
 
-        Object[] zeile = {
-                v.getDeutsch(),
-                v.getFremdsprache(),
-                v.getSprache(),
-                v.getLevel(),
-                gelerntText
-        };
-        tableModel.addRow(zeile);
+        String gewaehlteSprache = (String) cmbSprache.getSelectedItem();
+        String gewaehltesLevel = (String) cmbLevel.getSelectedItem();
+
+        for (Vokabel v : alleVokabeln) {
+            if (v.getSprache().equals(gewaehlteSprache) && v.getLevel().equals(gewaehltesLevel)) {
+
+                gefilterteListe.add(v);
+
+                String anzeigeFremd = v.istGelernt() ? v.getFremdsprache() : "???";
+                String gelerntText = v.istGelernt() ? "Ja" : "Nein";
+
+                Object[] zeile = {
+                        v.getDeutsch(),
+                        anzeigeFremd,
+                        v.getSprache(),
+                        v.getLevel(),
+                        gelerntText
+                };
+                tableModel.addRow(zeile);
+            }
+        }
     }
 
-    // --- Speichern ---
     private void speichern() {
         String deutsch = txtDeutsch.getText();
         String fremd = txtFremd.getText();
         String sprache = (String) cmbSprache.getSelectedItem();
         String level = (String) cmbLevel.getSelectedItem();
-        boolean gelernt = chkGelernt.isSelected(); // Wert aus Checkbox holen
+        boolean gelernt = chkGelernt.isSelected();
 
         if (deutsch.isEmpty() || fremd.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Bitte Felder ausfüllen!");
+            JOptionPane.showMessageDialog(this, "Bitte Textfelder ausfüllen!");
             return;
         }
 
         Vokabel neu = new Vokabel(deutsch, fremd, sprache, level, gelernt);
-        objektHinzufuegen(neu);
+
+        alleVokabeln.add(neu);
+        aktualisiereTabelle();
 
         txtDeutsch.setText("");
         txtFremd.setText("");
-        chkGelernt.setSelected(false); // Checkbox zurücksetzen
+        chkGelernt.setSelected(false);
     }
 
-    // --- Abfrage ---
-    private void startAbfrage(int viewRowIndex) {
-        int modelRow = tblVokabeln.convertRowIndexToModel(viewRowIndex);
-        aktuelleAbfrageVokabel = vokabelListe.get(modelRow);
-
-        lblAbfrageWort.setText("Was heißt '" + aktuelleAbfrageVokabel.getDeutsch() + "'?");
+    private void startAbfrage(Vokabel v) {
+        aktuelleAbfrageVokabel = v;
+        lblAbfrageWort.setText("Übersetze: '" + v.getDeutsch() + "' (" + v.getSprache() + ")");
         txtAntwort.setText("");
         txtAntwort.setBackground(Color.WHITE);
+        txtAntwort.requestFocus(); // Setzt Cursor direkt ins Feld
     }
 
-    // --- Prüfen (Das Herzstück mit Update) ---
     private void pruefeAntwort() {
         if (aktuelleAbfrageVokabel == null) return;
 
         String eingabe = txtAntwort.getText();
 
         if (aktuelleAbfrageVokabel.istLösungRichtig(eingabe)) {
-            // 1. Feedback geben
             txtAntwort.setBackground(Color.GREEN);
-            JOptionPane.showMessageDialog(this, "Richtig! Status auf 'Gelernt' gesetzt.");
+            JOptionPane.showMessageDialog(this, "Richtig! Super gemacht.");
 
-            // 2. Objekt aktualisieren
             aktuelleAbfrageVokabel.setIstGelernt(true);
 
-            // 3. Tabelle an der richtigen Stelle aktualisieren
-            // Spalte 4 ist "Gelernt?"
-            if (aktuelleZeileIndex != -1) {
-                tableModel.setValueAt("Ja", aktuelleZeileIndex, 4);
-            }
+            aktualisiereTabelle();
 
         } else {
+
             txtAntwort.setBackground(Color.RED);
-            JOptionPane.showMessageDialog(this, "Falsch! Lösung: " + aktuelleAbfrageVokabel.getFremdsprache());
+            JOptionPane.showMessageDialog(this, "Leider falsch.");
         }
     }
 
