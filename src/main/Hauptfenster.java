@@ -3,7 +3,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.Color;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
@@ -21,24 +20,32 @@ public class Hauptfenster extends JFrame{
     private JLabel lblAbfrageWort;
     private JTextField txtAntwort;
     private JButton btnPruefen;
+    private JButton btnLoeschen;
 
 
-    private DefaultTableModel tableModel;
     private ArrayList<Vokabel> alleVokabeln = new ArrayList<>();
     private ArrayList<Vokabel> gefilterteListe = new ArrayList<>();
+    private DefaultTableModel tableModel;
     private Vokabel aktuelleAbfrageVokabel = null;
 
     public Hauptfenster() {
         setContentPane(mainPanel);
         setTitle("Lern Fix 2026 - Vokabeltrainer");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(900, 650);
+        setSize(900, 600);
         setLocationRelativeTo(null);
 
-        String[] spalten = {"Deutsch", "Fremdsprache", "Sprache", "Level", "Gelernt?"};
-        tableModel = new DefaultTableModel(spalten, 0);
-        tblVokabeln.setModel(tableModel);
+        String[] spalten = {"Deutsches Wort", "Übersetzung", "Level", "Gelernt?"};
 
+        tableModel = new DefaultTableModel(spalten, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        tblVokabeln.setModel(tableModel);
+        tblVokabeln.setAutoCreateRowSorter(true);
 
         if (cmbSprache.getItemCount() == 0) {
             cmbSprache.addItem("Englisch");
@@ -52,41 +59,27 @@ public class Hauptfenster extends JFrame{
         initObjekte();
         aktualisiereTabelle();
 
-        ActionListener filterListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                aktualisiereTabelle();
-                lblAbfrageWort.setText("Wähle ein neues Wort aus der Liste...");
-                txtAntwort.setText("");
-                txtAntwort.setBackground(Color.WHITE);
-                aktuelleAbfrageVokabel = null;
-            }
-        };
+        ActionListener filterListener = e -> aktualisiereTabelle();
         cmbSprache.addActionListener(filterListener);
         cmbLevel.addActionListener(filterListener);
 
-        btnSpeichern.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                speichern();
-            }
-        });
-
-        btnPruefen.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pruefeAntwort();
-            }
-        });
+        btnSpeichern.addActionListener(e -> speichern());
+        btnLoeschen.addActionListener(e -> eintragLoeschen());
+        btnPruefen.addActionListener(e -> pruefeAntwort());
+        txtAntwort.addActionListener(e -> pruefeAntwort());
 
         tblVokabeln.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 if (!e.getValueIsAdjusting() && tblVokabeln.getSelectedRow() != -1) {
-                    int viewRow = tblVokabeln.getSelectedRow();
-                    int modelRow = tblVokabeln.convertRowIndexToModel(viewRow);
-                    if (modelRow < gefilterteListe.size()) {
-                        startAbfrage(gefilterteListe.get(modelRow));
+                    try {
+                        int viewRow = tblVokabeln.getSelectedRow();
+                        int modelRow = tblVokabeln.convertRowIndexToModel(viewRow);
+                        if (modelRow < gefilterteListe.size()) {
+                            startAbfrage(gefilterteListe.get(modelRow));
+                        }
+                    } catch (Exception ex) {
+                        System.out.println(ex.getMessage());
                     }
                 }
             }
@@ -94,23 +87,22 @@ public class Hauptfenster extends JFrame{
 
         setVisible(true);
     }
+
     public void initObjekte() {
-        // Englisch - Anfänger
+        //Englisch - Anfänger
         alleVokabeln.add(new Vokabel("Hund", "Dog", "Englisch", "Anfänger", false));
         alleVokabeln.add(new Vokabel("Bitte", "Please", "Englisch", "Anfänger", false));
         alleVokabeln.add(new Vokabel("Essen", "Eat", "Englisch", "Anfänger", false));
-
-        // Englisch - Fortgeschritten
+        //Englisch - Fortgeschritten
         alleVokabeln.add(new Vokabel("Eichhörnchen", "Squirrel", "Englisch", "Fortgeschritten", false));
         alleVokabeln.add(new Vokabel("Regenmantel", "Raincoat", "Englisch", "Fortgeschritten", false));
-        alleVokabeln.add(new Vokabel("Wohlhabend", "Wealthy", "Englisch", "Fortgeschritten", false));
+        alleVokabeln.add(new Vokabel("Schätzen", "Estimate", "Englisch", "Fortgeschritten", false));
 
-        // Französisch - Anfänger
+        //Französisch - Anfänger
         alleVokabeln.add(new Vokabel("Katze", "Chat", "Französisch", "Anfänger", false));
         alleVokabeln.add(new Vokabel("Danke", "Merci", "Französisch", "Anfänger", false));
         alleVokabeln.add(new Vokabel("Rot", "Rouge", "Französisch", "Anfänger", false));
-
-        // Französisch - Fortgeschritten
+        //Französisch - Fortgeschritten
         alleVokabeln.add(new Vokabel("Tasche", "Poche", "Französisch", "Fortgeschritten", false));
         alleVokabeln.add(new Vokabel("Englisch", "Anglais", "Französisch", "Fortgeschritten", false));
         alleVokabeln.add(new Vokabel("Schwer", "Lourde", "Französisch", "Fortgeschritten", false));
@@ -125,7 +117,6 @@ public class Hauptfenster extends JFrame{
 
         for (Vokabel v : alleVokabeln) {
             if (v.getSprache().equals(gewaehlteSprache) && v.getLevel().equals(gewaehltesLevel)) {
-
                 gefilterteListe.add(v);
 
                 String anzeigeFremd = v.istGelernt() ? v.getFremdsprache() : "???";
@@ -134,7 +125,6 @@ public class Hauptfenster extends JFrame{
                 Object[] zeile = {
                         v.getDeutsch(),
                         anzeigeFremd,
-                        v.getSprache(),
                         v.getLevel(),
                         gelerntText
                 };
@@ -151,12 +141,11 @@ public class Hauptfenster extends JFrame{
         boolean gelernt = chkGelernt.isSelected();
 
         if (deutsch.isEmpty() || fremd.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Bitte Textfelder ausfüllen!");
+            JOptionPane.showMessageDialog(this, "Bitte alle Felder ausfüllen!");
             return;
         }
 
         Vokabel neu = new Vokabel(deutsch, fremd, sprache, level, gelernt);
-
         alleVokabeln.add(neu);
         aktualisiereTabelle();
 
@@ -165,9 +154,49 @@ public class Hauptfenster extends JFrame{
         chkGelernt.setSelected(false);
     }
 
+    private void eintragLoeschen() {
+        try {
+            int selectedRow = tblVokabeln.getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(this, "Bitte erst eine Zeile auswählen!");
+                return;
+            }
+
+            int modelRow = tblVokabeln.convertRowIndexToModel(selectedRow);
+            Vokabel zuLoeschen = gefilterteListe.get(modelRow);
+
+            if (istSystemVokabel(zuLoeschen)) {
+                JOptionPane.showMessageDialog(this, "System-Wörter können nicht gelöscht werden!");
+                return;
+            }
+
+            alleVokabeln.remove(zuLoeschen);
+            aktualisiereTabelle();
+
+            lblAbfrageWort.setText("Wort gelöscht.");
+            txtAntwort.setText("");
+            aktuelleAbfrageVokabel = null;
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Fehler beim Löschen: " + e.getMessage());
+        }
+    }
+
+    private boolean istSystemVokabel(Vokabel v) {
+        String[] geschuetzt = {"Hund", "Bitte", "Essen", "Eichhörnchen", "Regenmantel", "Schätzen",
+                "Katze", "Danke", "Rot", "Tasche", "Englisch", "Schwer"};
+
+        for (String s : geschuetzt) {
+            if (v.getDeutsch().equals(s)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void startAbfrage(Vokabel v) {
         aktuelleAbfrageVokabel = v;
-        lblAbfrageWort.setText("Übersetze: '" + v.getDeutsch() + "' (" + v.getSprache() + ")");
+        lblAbfrageWort.setText("Was heißt '" + v.getDeutsch() + "'?");
         txtAntwort.setText("");
         txtAntwort.setBackground(Color.WHITE);
         txtAntwort.requestFocus();
@@ -175,19 +204,14 @@ public class Hauptfenster extends JFrame{
 
     private void pruefeAntwort() {
         if (aktuelleAbfrageVokabel == null) return;
-
         String eingabe = txtAntwort.getText();
 
         if (aktuelleAbfrageVokabel.istLösungRichtig(eingabe)) {
             txtAntwort.setBackground(Color.GREEN);
-            JOptionPane.showMessageDialog(this, "Richtig! Super gemacht.");
-
+            JOptionPane.showMessageDialog(this, "Richtig! Super.");
             aktuelleAbfrageVokabel.setIstGelernt(true);
-
             aktualisiereTabelle();
-
         } else {
-
             txtAntwort.setBackground(Color.RED);
             JOptionPane.showMessageDialog(this, "Leider falsch.");
         }
