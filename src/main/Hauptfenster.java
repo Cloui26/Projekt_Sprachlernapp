@@ -170,7 +170,7 @@ public class Hauptfenster extends JFrame{
         lblAbfrageWort.setText("Übersetze: '" + v.getDeutsch() + "' (" + v.getSprache() + ")");
         txtAntwort.setText("");
         txtAntwort.setBackground(Color.WHITE);
-        txtAntwort.requestFocus(); // Setzt Cursor direkt ins Feld
+        txtAntwort.requestFocus();
     }
 
     private void pruefeAntwort() {
