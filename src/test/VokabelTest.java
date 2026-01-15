@@ -14,8 +14,7 @@ public class VokabelTest {
 
     @Test
     void testLernStatus_setterUndGetter() {
-        Vokabel v = new Vokabel("Haus", "House", "Englisch", "Anfänger", false);
-
+        Vokabel v = new Vokabel("Bitte", "Please", "Englisch", "Anfänger", false);
         assertFalse(v.istGelernt());
         v.setIstGelernt(true);
         assertTrue(v.istGelernt());
