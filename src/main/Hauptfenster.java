@@ -5,10 +5,11 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.awt.*;
 
 
 
-public class Hauptfenster extends JFrame{
+public class Hauptfenster extends JFrame {
     private JPanel mainPanel;
     private JTextField txtDeutsch;
     private JTextField txtFremd;
@@ -30,12 +31,31 @@ public class Hauptfenster extends JFrame{
 
     public Hauptfenster() {
         setContentPane(mainPanel);
-        setTitle("Lern Fix 2026 - Vokabeltrainer");
+        setTitle("LernFix 2026 - Vokabeltrainer");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(900, 600);
         setLocationRelativeTo(null);
+        mainPanel.setBackground(new Color(245, 245, 245)); // Hellgrau
 
-        String[] spalten = {"Deutsches Wort", "Übersetzung", "Level", "Gelernt?"};
+        // Speichern
+        btnSpeichern.setBackground(new Color(52, 152, 219));
+        btnSpeichern.setForeground(Color.WHITE); // Text weiß
+        btnSpeichern.setOpaque(true);
+        btnSpeichern.setBorderPainted(false); // Rand weg für cleanen Look
+
+        // Löschen
+        btnLoeschen.setBackground(new Color(231, 76, 60));
+        btnLoeschen.setForeground(Color.WHITE);
+        btnLoeschen.setOpaque(true);
+        btnLoeschen.setBorderPainted(false);
+
+        // Prüfen
+        btnPruefen.setBackground(new Color(241, 196, 15));
+        btnPruefen.setForeground(Color.BLACK); // Text schwarz
+        btnPruefen.setOpaque(true);
+        btnPruefen.setBorderPainted(false);
+
+        String[] spalten = {"Deutsches Wort", "Übersetzung", "Level", "Gelernt"};
 
         tableModel = new DefaultTableModel(spalten, 0) {
             @Override
