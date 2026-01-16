@@ -55,6 +55,7 @@ public class Hauptfenster extends JFrame {
         btnPruefen.setOpaque(true);
         btnPruefen.setBorderPainted(false);
 
+
         String[] spalten = {"Deutsches Wort", "Übersetzung", "Level", "Gelernt"};
 
         tableModel = new DefaultTableModel(spalten, 0) {
