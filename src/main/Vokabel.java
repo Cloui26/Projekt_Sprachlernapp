@@ -28,7 +28,7 @@ public class Vokabel {
 
     public boolean istGelernt() { return istGelernt; }
 
-    // NEU: Setter, damit wir den Status ändern können, wenn man richtig antwortet
+
     public void setIstGelernt(boolean istGelernt) {
         this.istGelernt = istGelernt;
     }
